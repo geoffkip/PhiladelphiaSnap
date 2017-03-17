@@ -3,6 +3,7 @@ library(tidyr)
 library(leaflet)
 library(rgdal)
 library(DT)
+library(shiny_dashboard)
 
 setwd("D:/r/shiny_apps/Benephilly_map/data")
 benephilly_data <- read.csv("map_data.csv")
