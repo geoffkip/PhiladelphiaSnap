@@ -38,7 +38,8 @@ str(philly_shp.df)
 philly_shp.df <- philly_shp.df[,c(1,2,7,9,11,12)]
 ggplot(philly_shp.df, aes(long, lat, group=group )) + geom_polygon()
 
-zips2 <- zips1[! zips1$zip %in% c(19105,19193, 19102,19125),]
+zips2 <- zips1[! zips1$zip %in% c(19105,19193, 19102),]
+zips1b <- zips1[,1:3]
 
 #bounds<-bbox(philly_shp3)
 
@@ -60,7 +61,7 @@ ui <- dashboardPage(
       column(width=3,
              box(width=NULL, 
                  img(src="bdtlogo.png", width="100%", height=100, align="center"),
-                 uiOutput("BenefitOutput",selected="snap")
+                 uiOutput("BenefitOutput")
                  
                  
              )
@@ -70,6 +71,11 @@ ui <- dashboardPage(
 )
 
 server <- function(input, output, session) {
+  
+  output$BenefitOutput <- renderUI({
+    selectInput("BenefitInput", "Choose a Benefit you want to map:",
+                sort(unique(zips2$benefit_key)),
+                selected = "snap")}) 
   
   filtered <- reactive({
     if (is.null(input$BenefitInput)) {
@@ -83,35 +89,40 @@ server <- function(input, output, session) {
              long==long,
              lat==lat)})
   
+  tabledata <- reactive({
+    if (is.null(input$BenefitInput)) {
+      return(NULL)
+    } 
+    zips1b %>%
+      filter(benefit_key== input$BenefitInput ,
+             zip==zip,
+             clients_served== clients_served)})
+  
   output$map <- renderPlot({
     if (is.null(filtered())) {
       return()
     }
-    ggplot() +
-    geom_polygon(data = filtered(), 
-                 aes(x = long, y = lat, group = group, fill = clients_served), 
-                 color = "black", size = 0.25) + 
-    coord_map()+
-    scale_fill_distiller(name="Clients Served", palette = "YlGn", breaks = pretty_breaks(n = 6))+
-    theme_nothing(legend = TRUE)+
-    geom_text(data=zips2, aes(longitude,latitude,label=zip), color="grey",
-              size=2,fontface="bold")+
-    labs(title="Clients Served by Zipcode")
+    ggplot() + 
+      geom_polygon(data = philly_shp.df, 
+                   aes(x = long, y = lat, group = group), 
+                   color = "black", size = 0.25) +
+      geom_polygon(data = filtered(), 
+                   aes(x = long, y = lat, group = group, fill = clients_served), 
+                   color = "black", size = 0.25) + 
+      scale_fill_distiller(name="Clients Served", palette = "YlGn", breaks = pretty_breaks(n = 6))+
+      theme_nothing(legend = TRUE)+
+      geom_text(data=zips2, aes(longitude,latitude,label=zip), color="grey",
+                size=2,fontface="bold")+
+      labs(title="Clients Served by Zipcode")
   })
   
-  output$BenefitOutput <- renderUI({
-    selectInput("BenefitInput", "Choose a Benefit you want to map:",
-                zips2$benefit_key,
-                selected = "snap")}) 
-  
-  
-  output$results <- renderDataTable(zips)
+
+  output$results <- renderDataTable(tabledata())
   
   
   
   
 }
 
-
-
 shinyApp(ui = ui, server = server)
+
