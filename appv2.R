@@ -36,12 +36,18 @@ philly_shp@data$CLIENTS_SE <- NULL
 philly_shp@data$id <- rownames(philly_shp@data)
 philly_shp.point <- fortify(philly_shp, region="id")
 philly_shp.df <- inner_join(philly_shp.point,philly_shp@data, by="id")
+#subset data
+philly_shp.df2 <- subset(philly_shp.df, !duplicated (philly_shp.df$CODE))
+philly_shp.df2 <- philly_shp.df2[,c(1,2,9)]
+#join data
 philly_shp.df <- suppressWarnings(left_join(philly_shp.df, zips, by="CODE"))
 philly_shp.df$clients_served <- as.numeric(philly_shp.df$clients_served)
 head(philly_shp.df)
 str(philly_shp.df)
 philly_shp.df <- philly_shp.df[,c(1,2,7,9,11,12)]
 ggplot(philly_shp.df, aes(long, lat, group=group )) + geom_polygon()
+
+
 
 zips2 <- zips1[! zips1$zip %in% c(19105,19193, 19102),]
 zips2$zip <- as.numeric(zips2$zip)
@@ -75,10 +81,10 @@ ui <- dashboardPage(
              box(width=NULL, 
                  img(src="bdtlogo.png", width="100%", height=100, align="center"),
                  uiOutput("BenefitOutput"),
-                 numericInput(inputId = "num",
-                              label = "Enter a zipcode you want to investigate:",
-                              min = 0, max = 10000, value=19104)
-                 #uiOutput("ZipOutput")
+                 # numericInput(inputId = "num",
+                 #              label = "Enter a zipcode you want to investigate:",
+                 #              min = 0, max = 10000, value=19104),
+                 uiOutput("ZipOutput")
                  )),
                  
       fluidRow(column(width=9,
@@ -229,19 +235,17 @@ server <- function(input, output, session) {
   })
   
   labelsmarkers <- reactive({
-    if (is.null(input$num)) {
+    if (is.null(input$Zip)) {
       return(NULL)
     } 
-    zips2 %>%
-      filter(benefit_key== benefit_key ,
-             zip== input$num,
-             clients_served== clients_served,
-             longitude==longitude,
-             latitude==latitude)})
+    philly_shp.df2 %>%
+      filter(CODE== input$Zip,
+             long==long,
+             lat==lat)})
   
   
   observe({
-    if (is.null(input$num)) {
+    if (is.null(input$Zip)) {
       return(NULL)
     } 
     theData <- getDataSet()
@@ -251,8 +255,8 @@ server <- function(input, output, session) {
     # Remove any existing legend, and only if the legend is
     # enabled, create a new one.
     proxy %>% clearMarkers()
-    proxy %>%  addMarkers(~labels$longitude, ~labels$latitude, 
-                          popup = ~as.character(labels$zip), label = ~as.character(labels$zip))
+    proxy %>%  addMarkers(~labels$long, ~labels$lat, 
+                          popup = ~as.character(labels$CODE), label = ~as.character(labels$CODE))
     
     
   })
