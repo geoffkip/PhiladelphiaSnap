@@ -14,7 +14,7 @@ library(rgeos)
 library(shinydashboard)
 library(leaflet)
 
-#setwd("~/Documents/R files/BDT de-identified work/Benephilly_map/data")
+setwd("~/Documents/R files/BDT de-identified work/Chloropleth map app/data")
 
 data(zipcode)
 zipcode$zip <- as.numeric(zipcode$zip)
@@ -22,7 +22,7 @@ str(zipcode)
 
 
 
-zips <- read.csv("data/Shapefiles_dbfedit1.csv",stringsAsFactors = FALSE)
+zips <- read.csv("Shapefiles_dbfedit1.csv",stringsAsFactors = FALSE)
 #zips <- subset(zips, benefit_key != c("aca_qhp_pa", "pace" , 
 #"head_start_pa", "wic" ,"medicaid_pa_recert", "eitc" ,"ccis_pa" ,"head_start_pa", "eitc_pa" ,
 #"unemployment" , "aca_qhp_pa" , "cap_pa"))
@@ -31,7 +31,7 @@ zips1 <- zips
 colnames(zips1) <- c("zip", "benefit_key" , "clients_served")
 zips1<- merge(zips1, zipcode, by='zip')
 
-philly_shp <- readOGR("data/Zipcodes_Poly.shp")
+philly_shp <- readOGR("Zipcodes_Poly.shp")
 philly_shp@data$CLIENTS_SE <- NULL
 philly_shp@data$id <- rownames(philly_shp@data)
 philly_shp.point <- fortify(philly_shp, region="id")
@@ -44,6 +44,7 @@ philly_shp.df <- philly_shp.df[,c(1,2,7,9,11,12)]
 ggplot(philly_shp.df, aes(long, lat, group=group )) + geom_polygon()
 
 zips2 <- zips1[! zips1$zip %in% c(19105,19193, 19102),]
+zips2$zip <- as.numeric(zips2$zip)
 zips1b <- zips1[,1:3]
 
 bounds<-bbox(philly_shp)
@@ -73,7 +74,12 @@ ui <- dashboardPage(
       column(width=3,
              box(width=NULL, 
                  img(src="bdtlogo.png", width="100%", height=100, align="center"),
-                 uiOutput("BenefitOutput"))),
+                 uiOutput("BenefitOutput"),
+                 numericInput(inputId = "num",
+                              label = "Enter a zipcode you want to investigate:",
+                              min = 0, max = 10000, value=19104)
+                 #uiOutput("ZipOutput")
+                 )),
                  
       fluidRow(column(width=9,
                       box(width=NULL,
@@ -95,6 +101,11 @@ server <- function(input, output, session) {
     selectInput("BenefitInput", "Choose a Benefit you want to map:",
                 sort(unique(zips2$benefit_key)),
                 selected = "snap")}) 
+  
+  output$ZipOutput <- renderUI({
+    selectInput("Zip", "Choose a zipcode you want to investigate:",
+                sort(unique(zips2$zip)),
+                selected = 19104)}) 
   
   filtered <- reactive({
     if (is.null(input$BenefitInput)) {
@@ -217,8 +228,40 @@ server <- function(input, output, session) {
     
   })
   
+  labelsmarkers <- reactive({
+    if (is.null(input$num)) {
+      return(NULL)
+    } 
+    zips2 %>%
+      filter(benefit_key== benefit_key ,
+             zip== input$num,
+             clients_served== clients_served,
+             longitude==longitude,
+             latitude==latitude)})
+  
+  
+  observe({
+    if (is.null(input$num)) {
+      return(NULL)
+    } 
+    theData <- getDataSet()
+    labels <- labelsmarkers()
+    proxy <- leafletProxy("leafMap", data = theData)
+    
+    # Remove any existing legend, and only if the legend is
+    # enabled, create a new one.
+    proxy %>% clearMarkers()
+    proxy %>%  addMarkers(~labels$longitude, ~labels$latitude, 
+                          popup = ~as.character(labels$zip), label = ~as.character(labels$zip))
+    
+    
+  })
+  
+  
+  
   
   
 }
 
 shinyApp(ui = ui, server = server)
+
