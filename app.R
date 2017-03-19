@@ -12,6 +12,7 @@ library(classInt)
 library(scales)
 library(rgeos)
 library(shinydashboard)
+library(leaflet)
 
 #setwd("~/Documents/R files/BDT de-identified work/Benephilly_map/data")
 
