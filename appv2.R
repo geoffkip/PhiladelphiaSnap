@@ -14,7 +14,7 @@ library(rgeos)
 library(shinydashboard)
 library(leaflet)
 
-setwd("~/Documents/R files/BDT de-identified work/Chloropleth map app/data")
+#setwd("~/Documents/R files/BDT de-identified work/Chloropleth map app/data")
 
 data(zipcode)
 zipcode$zip <- as.numeric(zipcode$zip)
@@ -22,7 +22,7 @@ str(zipcode)
 
 
 
-zips <- read.csv("Shapefiles_dbfedit1.csv",stringsAsFactors = FALSE)
+zips <- read.csv("data/Shapefiles_dbfedit1.csv",stringsAsFactors = FALSE)
 #zips <- subset(zips, benefit_key != c("aca_qhp_pa", "pace" , 
 #"head_start_pa", "wic" ,"medicaid_pa_recert", "eitc" ,"ccis_pa" ,"head_start_pa", "eitc_pa" ,
 #"unemployment" , "aca_qhp_pa" , "cap_pa"))
@@ -31,7 +31,7 @@ zips1 <- zips
 colnames(zips1) <- c("zip", "benefit_key" , "clients_served")
 zips1<- merge(zips1, zipcode, by='zip')
 
-philly_shp <- readOGR("Zipcodes_Poly.shp")
+philly_shp <- readOGR("data/Zipcodes_Poly.shp")
 philly_shp@data$CLIENTS_SE <- NULL
 philly_shp@data$id <- rownames(philly_shp@data)
 philly_shp.point <- fortify(philly_shp, region="id")
