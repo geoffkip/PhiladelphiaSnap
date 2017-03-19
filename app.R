@@ -22,7 +22,10 @@ str(zipcode)
 
 
 
-zips <- read.csv("data/Shapefiles_dbfedit.csv",stringsAsFactors = FALSE)
+zips <- read.csv("data/Shapefiles_dbfedit1.csv",stringsAsFactors = FALSE)
+#zips <- subset(zips, benefit_key != c("aca_qhp_pa", "pace" , 
+#"head_start_pa", "wic" ,"medicaid_pa_recert", "eitc" ,"ccis_pa" ,"head_start_pa", "eitc_pa" ,
+#"unemployment" , "aca_qhp_pa" , "cap_pa"))
 zips[,c(1,3)] <- NULL
 zips1 <- zips
 colnames(zips1) <- c("zip", "benefit_key" , "clients_served")
