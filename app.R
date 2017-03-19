@@ -182,7 +182,7 @@ server <- function(input, output, session) {
     theData<-getDataSet() 
     
     # colour palette mapped to data
-    pal <- colorQuantile("YlGn", theData$clients_served, n = 6) 
+    pal <- colorQuantile(rev("YlGn"), theData$clients_served, n = 6) 
     
     # set text for the clickable popup labels
     philly_popup <-paste0("<strong> Zipcodes </strong>", 
