@@ -37,8 +37,11 @@ philly_shp@data$id <- rownames(philly_shp@data)
 philly_shp.point <- fortify(philly_shp, region="id")
 philly_shp.df <- inner_join(philly_shp.point,philly_shp@data, by="id")
 #subset data
-philly_shp.df2 <- subset(philly_shp.df, !duplicated (philly_shp.df$CODE))
-philly_shp.df2 <- philly_shp.df2[,c(1,2,9)]
+philly_shp.df2 <- aggregate(philly_shp.df[, 1:2], list(philly_shp.df$CODE), mean)
+colnames(philly_shp.df2) <- c("CODE" , "long" , "lat")
+#philly_shp.df2 <- subset(philly_shp.df, !duplicated (philly_shp.df$CODE))
+#philly_shp.df2 <- philly_shp.df2[,c(1,2,9)]
+
 #join data
 philly_shp.df <- suppressWarnings(left_join(philly_shp.df, zips, by="CODE"))
 philly_shp.df$clients_served <- as.numeric(philly_shp.df$clients_served)
