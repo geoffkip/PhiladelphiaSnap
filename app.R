@@ -10,7 +10,8 @@ library(rgdal)
 library(foreign)
 library(classInt)
 library(scales)
-
+library(rgeos)
+library(shinydashboard)
 
 #setwd("~/Documents/R files/BDT de-identified work/Benephilly_map/data")
 
