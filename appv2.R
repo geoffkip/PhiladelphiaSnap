@@ -14,7 +14,7 @@ library(rgeos)
 library(shinydashboard)
 library(leaflet)
 
-#setwd("~/Documents/R files/BDT de-identified work/Chloropleth map app/data")
+#setwd("~D:/r/shiny_apps/Benephilly_map/data")
 
 data(zipcode)
 zipcode$zip <- as.numeric(zipcode$zip)
@@ -47,7 +47,7 @@ philly_shp.df <- suppressWarnings(left_join(philly_shp.df, zips, by="CODE"))
 philly_shp.df$clients_served <- as.numeric(philly_shp.df$clients_served)
 head(philly_shp.df)
 str(philly_shp.df)
-philly_shp.df <- philly_shp.df[,c(1,2,7,9,11,12)]
+#philly_shp.df <- philly_shp.df[,c(1,2,7,9,11,12)]
 ggplot(philly_shp.df, aes(long, lat, group=group )) + geom_polygon()
 
 
@@ -88,21 +88,21 @@ ui <- dashboardPage(
                  #              label = "Enter a zipcode you want to investigate:",
                  #              min = 0, max = 10000, value=19104),
                  uiOutput("ZipOutput")
-                 )),
-                 
+             )),
+      
       fluidRow(column(width=9,
                       box(width=NULL,
                           dataTableOutput("results")
                       )
                       
-                      ))
-          
-                 
-                 
-             )
-      )
+      ))
+      
+      
+      
     )
-  
+  )
+)
+
 
 server <- function(input, output, session) {
   
@@ -155,7 +155,7 @@ server <- function(input, output, session) {
       labs(title="Clients Served by Zipcode")
   })
   
-
+  
   output$results <- renderDataTable(tabledata())
   
   
@@ -175,7 +175,7 @@ server <- function(input, output, session) {
     joinedDataset@data$clients_served <- as.numeric(joinedDataset@data$clients_served)
     #joinedDataset$clients_served[is.na(joinedDataset$clients_served)] <- 0
     #joinedDataset$benefit_key[is.na(joinedDataset$benefit_key)] <- input$BenefitInput
-    joinedDataset@data <- na.omit(joinedDataset@data)
+    #joinedDataset@data <- na.omit(joinedDataset@data)
     
     joinedDataset
   })
@@ -223,17 +223,17 @@ server <- function(input, output, session) {
   observe({
     theData <- getDataSet()
     ## I've reversed the order of the colours too
-    pal2 <- colorNumeric("YlGn", theData$clients_served, n=6)
+    pal2 <- colorNumeric("YlGn", na.omit(theData$clients_served), n=6)
     proxy <- leafletProxy("leafMap", data = theData)
     
     # Remove any existing legend, and only if the legend is
     # enabled, create a new one.
     proxy %>% clearControls()
-      pal <- pal2
-      proxy %>% addLegend(position = "bottomright",
-                          pal = pal, values = ~clients_served , opacity = 1,
-                          title = 'Legend')
-      
+    pal <- pal2
+    proxy %>% addLegend(position = "bottomright",
+                        pal = pal, values = ~clients_served , opacity = 1,
+                        title = 'Legend')
+    
     
   })
   
