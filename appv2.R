@@ -14,7 +14,7 @@ library(rgeos)
 library(shinydashboard)
 library(leaflet)
 
-author: Geoffrey Kip
+#author: Geoffrey Kip
 #setwd("~D:/r/shiny_apps/Benephilly_map/data")
 
 data(zipcode)
