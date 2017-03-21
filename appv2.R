@@ -35,6 +35,10 @@ zips1<- merge(zips1, zipcode, by='zip')
 philly_shp <- readOGR("data/Zipcodes_Poly.shp")
 philly_shp@data$CLIENTS_SE <- NULL
 philly_shp@data$id <- rownames(philly_shp@data)
+
+# transform to WGS884 reference system 
+philly_shp<-spTransform(philly_shp, CRS("+init=epsg:4326"))
+
 philly_shp.point <- fortify(philly_shp, region="id")
 philly_shp.df <- inner_join(philly_shp.point,philly_shp@data, by="id")
 #subset data
