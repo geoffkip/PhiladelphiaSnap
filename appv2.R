@@ -15,7 +15,7 @@ library(shinydashboard)
 library(leaflet)
 
 #author: Geoffrey Kip
-#setwd("~D:/r/shiny_apps/Benephilly_map/data")
+#setwd("D:/r/shiny_apps/Benephilly_map/data")
 
 data(zipcode)
 zipcode$zip <- as.numeric(zipcode$zip)
@@ -74,18 +74,23 @@ bounds<-bbox(philly_shp)
 # #   }
 # }
 
+#read data for graphs
+
+graph_data <- read.csv("data/Graph_data_benefits.csv", stringsAsFactors = FALSE)
+graph_data$submit_month <- mdy(graph_data$submit_month)
+
 ui <- dashboardPage(
-  header<-dashboardHeader(title="Benephilly Clients Served by Zipcode",
+  header<-dashboardHeader(title="Philadelphia Clients Served by Zipcode",
                           titleWidth = 600),
   dashboardSidebar(disable = TRUE),
   body<-dashboardBody(
     fluidRow(
-      column(width = 9,
+      column(width = 10,
              box(width = NULL, solidHeader = TRUE,
                  leafletOutput("leafMap", height=400)
              )
       ),
-      column(width=3,
+      column(width=2,
              box(width=NULL, 
                  img(src="bdtlogo.png", width="100%", height=100, align="center"),
                  uiOutput("BenefitOutput"),
@@ -95,9 +100,10 @@ ui <- dashboardPage(
                  uiOutput("ZipOutput")
              )),
       
-      fluidRow(column(width=9,
+      fluidRow(column(width=10,
                       box(width=NULL,
-                          dataTableOutput("results")
+                          #dataTableOutput("results")
+                          plotOutput("barplot")
                       )
                       
       ))
@@ -112,12 +118,12 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
   
   output$BenefitOutput <- renderUI({
-    selectInput("BenefitInput", "Choose a Benefit you want to map:",
+    selectInput("BenefitInput", "Choose a Benefit you want to analyze:",
                 sort(unique(zips2$benefit_key)),
                 selected = "snap")}) 
   
   output$ZipOutput <- renderUI({
-    selectInput("Zip", "Choose a zipcode you want to investigate:",
+    selectInput("Zip", "Choose a zipcode you want to investigate on the map:",
                 sort(unique(zips2$zip)),
                 selected = 19104)}) 
   
@@ -188,7 +194,7 @@ server <- function(input, output, session) {
   output$leafMap<-renderLeaflet({
     
     leaflet() %>%
-      addTiles() %>%
+      addProviderTiles("CartoDB.Positron") %>%
       
       # Centre the map in the middle of our co-ordinates
       setView(mean(bounds[1,]),
@@ -215,7 +221,7 @@ server <- function(input, output, session) {
     # If the data changes, the polygons are cleared and redrawn, however, the map (above) is not redrawn
     leafletProxy("leafMap", data = theData) %>%
       clearShapes() %>%
-      addProviderTiles("CartoDB.Positron") %>%
+      #addProviderTiles("CartoDB.Positron") %>%
       addPolygons(data = theData,
                   fillColor = pal(theData$clients_served), 
                   fillOpacity = 0.8, 
@@ -271,9 +277,31 @@ server <- function(input, output, session) {
   
   
   
+  reactive_graph <- reactive({
+    if (is.null(input$BenefitInput)) {
+      return(NULL)
+    }
+    
+    graph_data %>%
+      filter(benefit_key== input$BenefitInput ,
+             submit_month==submit_month,
+             clients_served== clients_served)})
+    
+  
+  
+  output$barplot <- renderPlot({
+    if (is.null(reactive_graph())) {
+      return()
+    }
+    ggplot(data=reactive_graph(), aes(x=as.character(submit_month), y=clients_served)) + 
+      geom_bar(colour="black", fill="cadetblue", width=.8, stat="identity") + 
+      guides(fill=FALSE) +
+      xlab("Month of Submission") + ylab("Applications") +
+      ggtitle(paste('Monthly', reactive_graph()$benefit_key, 'Applications'))
+  })
+  
   
   
 }
 
 shinyApp(ui = ui, server = server)
-
