@@ -13,6 +13,7 @@ library(scales)
 library(rgeos)
 library(shinydashboard)
 library(leaflet)
+library(lubridate)
 
 #author: Geoffrey Kip
 #setwd("D:/r/shiny_apps/Benephilly_map/data")
