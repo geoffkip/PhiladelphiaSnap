@@ -19,7 +19,7 @@ library(leaflet)
 
 data(zipcode)
 zipcode$zip <- as.numeric(zipcode$zip)
-str(zipcode)
+#str(zipcode)
 
 
 
@@ -51,7 +51,7 @@ colnames(philly_shp.df2) <- c("CODE" , "long" , "lat")
 philly_shp.df <- suppressWarnings(left_join(philly_shp.df, zips, by="CODE"))
 philly_shp.df$clients_served <- as.numeric(philly_shp.df$clients_served)
 head(philly_shp.df)
-str(philly_shp.df)
+#str(philly_shp.df)
 #philly_shp.df <- philly_shp.df[,c(1,2,7,9,11,12)]
 ggplot(philly_shp.df, aes(long, lat, group=group )) + geom_polygon()
 
@@ -296,8 +296,8 @@ server <- function(input, output, session) {
     ggplot(data=reactive_graph(), aes(x=as.character(submit_month), y=clients_served)) + 
       geom_bar(colour="black", fill="cadetblue", width=.8, stat="identity") + 
       guides(fill=FALSE) +
-      xlab("Month of Submission") + ylab("Applications") +
-      ggtitle(paste('Monthly', reactive_graph()$benefit_key, 'Applications'))
+      xlab("Month") + ylab("Clients Served") +
+      ggtitle(paste('Unique Monthly', reactive_graph()$benefit_key, 'Clients Served'))
   })
   
   
@@ -305,3 +305,4 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui = ui, server = server)
+
