@@ -33,8 +33,9 @@ zips1 <- zips
 colnames(zips1) <- c("zip", "benefit_key" , "clients_served")
 zips1<- merge(zips1, zipcode, by='zip')
 
-philly_shp <- readOGR("data/Zipcodes_Poly.shp")
-philly_shp@data$CLIENTS_SE <- NULL
+philly_shp <- readOGR("data/PhillyStreets_Zipcodes_Poly.shp")
+#philly_shp@data$CLIENTS_SE <- NULL
+philly_shp@data$CODE <- as.numeric(levels(philly_shp@data$CODE))[philly_shp@data$CODE]
 philly_shp@data$id <- rownames(philly_shp@data)
 
 # transform to WGS884 reference system 
