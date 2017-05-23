@@ -1,2 +1,2 @@
-##Leaflet Javascript Map
+## Leaflet Javascript Map
 Simple map
